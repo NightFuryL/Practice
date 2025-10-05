@@ -1,77 +1,99 @@
 #include <iostream>
-#include <cmath>
+#include <fstream>
+#include <vector>
+
 using namespace std;
 
-class Figure {
+class Shape {
 public:
-	virtual double GetArea() { return -1; }
+    virtual void Show() const = 0;
+    virtual void Save(ofstream& fout) const = 0;
+    virtual void Load(ifstream& fin) = 0;
+    virtual ~Shape() {}
 };
-
-class Rectangle : public Figure {
-    double width, height;
+class Square : public Shape {
+    double side;
 public:
-    Rectangle(double width, double height) : width(width), height(height) {}
-    double GetArea() override {
-        return width * height;
+    Square(double side = 0) : side(side ) {}
+
+    void Show() const override {
+        cout << "Square, side = " << side << endl;
+    }
+
+    void Save(ofstream& fout) const override {
+        fout << "Square " << side << endl;
+    }
+
+    void Load(ifstream& fin) override {
+        fin >> side;
     }
 };
 
-class Circle : public Figure {
+class Rectangle : public Shape {
+    double a, b;
+public:
+    Rectangle(double a = 0, double b = 0) : a(a), b(b) {}
+
+    void Show() const override {
+        cout << "Rectangle, a = " << a << ", b = " << b << endl;
+    }
+
+    void Save(ofstream& fout) const override {
+        fout << "Rectangle " << a << " " << b << endl;
+    }
+
+    void Load(ifstream& fin) override {
+        fin >> a >> b;
+    }
+};
+
+class Circle : public Shape {
     double radius;
 public:
-    Circle(double radius) : radius(radius) {}
-    double GetArea() override {
-        return 3.14 * radius * radius;
+    Circle(double radius = 0) : radius(radius) {}
+
+    void Show() const override {
+        cout << "Circle, radius = " << radius << endl;
+    }
+
+    void Save(ofstream& fout) const override {
+        fout << "Circle " << radius << endl;
+    }
+
+    void Load(ifstream& fin) override {
+        fin >> radius;
     }
 };
-
-class Triangle : public Figure {
-    double base, height;
-public:
-    Triangle(double base, double height) : base(base), height(height) {}
-    double GetArea() override {
-        return 0.5 * base * height;
-    }
-};
-
 int main() {
-    Figure* fig = nullptr;
-    int choice;
-    double a, b;
-
-    cout << "Menu : " << endl;
-    cout << "1 - Rectangle" << endl;
-    cout << "2 - Circle" << endl;
-    cout << "3 - Triangle" << endl;
-    cout << "Your choice : " << endl;
-    cin >> choice;
-
-    if (choice == 1) {
-        cout << "Enter width : ";
-        cin >> a;
-        cout << "Enter height : ";
-        cin >> b;
-        fig = new Rectangle(a, b);
+    vector<Shape*> shapes;
+    shapes.push_back(new Square(5));
+    shapes.push_back(new Rectangle(3, 7));
+    shapes.push_back(new Circle(4));
+    ofstream fout("shapes.txt");
+    for (auto s : shapes) {
+        s->Save(fout);
     }
-    else if (choice == 2) {
-        cout << "Enter radius : ";
-        cin >> a;
-        fig = new Circle(a);
-    }
-    else if (choice == 3) {
-        cout << "Enter base : ";
-        cin >> a;
-        cout << "Enter height : ";
-        cin >> b;
-        fig = new Triangle(a, b);
-    }
-    else {
-        cout << "Invalid choice" << endl;
-        return 0;
-    }
+    fout.close();
+    for (auto s : shapes) delete s;
+    shapes.clear();
+    ifstream fin("shapes.txt");
+    string type;
+    while (fin >> type) {
+        Shape* s = nullptr;
+        if (type == "Square") s = new Square();
+        else if (type == "Rectangle") s = new Rectangle();
+        else if (type == "Circle") s = new Circle();
 
-    cout << "Area : " << fig->GetArea() << endl;
-
-    delete fig;
+        if (s) {
+            s->Load(fin);
+            shapes.push_back(s);
+        }
+    }
+    fin.close();
+    cout << "\nShapes loaded from file : \n";
+    for (auto s : shapes) {
+        s->Show();
+    }
+    for (auto s : shapes) delete s;
     return 0;
 }
