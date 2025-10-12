@@ -1,99 +1,63 @@
 #include <iostream>
-#include <fstream>
-#include <vector>
+#include <Windows.h>
 
 using namespace std;
 
+int toInt(double i) {
+    return static_cast<int>(i);
+}
 class Shape {
 public:
-    virtual void Show() const = 0;
-    virtual void Save(ofstream& fout) const = 0;
-    virtual void Load(ifstream& fin) = 0;
+    virtual double getPerimeter() const = 0;
     virtual ~Shape() {}
 };
-class Square : public Shape {
-    double side;
-public:
-    Square(double side = 0) : side(side ) {}
-
-    void Show() const override {
-        cout << "Square, side = " << side << endl;
-    }
-
-    void Save(ofstream& fout) const override {
-        fout << "Square " << side << endl;
-    }
-
-    void Load(ifstream& fin) override {
-        fin >> side;
-    }
-};
-
-class Rectangle : public Shape {
-    double a, b;
-public:
-    Rectangle(double a = 0, double b = 0) : a(a), b(b) {}
-
-    void Show() const override {
-        cout << "Rectangle, a = " << a << ", b = " << b << endl;
-    }
-
-    void Save(ofstream& fout) const override {
-        fout << "Rectangle " << a << " " << b << endl;
-    }
-
-    void Load(ifstream& fin) override {
-        fin >> a >> b;
-    }
-};
-
 class Circle : public Shape {
     double radius;
 public:
-    Circle(double radius = 0) : radius(radius) {}
-
-    void Show() const override {
-        cout << "Circle, radius = " << radius << endl;
-    }
-
-    void Save(ofstream& fout) const override {
-        fout << "Circle " << radius << endl;
-    }
-
-    void Load(ifstream& fin) override {
-        fin >> radius;
-    }
+    Circle(double radius) : radius(radius) {}
+    double getPerimeter() const override { return 2 * 3.14 * radius; }
 };
-int main() {
-    vector<Shape*> shapes;
-    shapes.push_back(new Square(5));
-    shapes.push_back(new Rectangle(3, 7));
-    shapes.push_back(new Circle(4));
-    ofstream fout("shapes.txt");
-    for (auto s : shapes) {
-        s->Save(fout);
-    }
-    fout.close();
-    for (auto s : shapes) delete s;
-    shapes.clear();
-    ifstream fin("shapes.txt");
-    string type;
-    while (fin >> type) {
-        Shape* s = nullptr;
-        if (type == "Square") s = new Square();
-        else if (type == "Rectangle") s = new Rectangle();
-        else if (type == "Circle") s = new Circle();
+char* voidToChar(void* ptr) {
+    return static_cast<char*>(ptr);
+}
+class Vehicle {
+public:
+    virtual ~Vehicle() {}
+};
+class Car : public Vehicle {};
+class Bicycle : public Vehicle {};
+void checkTypeVehicle(Vehicle* vehicle) {
+    if (typeid(*vehicle) == typeid(Car)) cout << "Car\n";
+    else if (typeid(*vehicle) == typeid(Bicycle)) cout << "Bicycle\n";
+}
 
-        if (s) {
-            s->Load(fin);
-            shapes.push_back(s);
-        }
+void castVehicle(Vehicle& vehicle) {
+    try {
+        Car& car = dynamic_cast<Car&>(vehicle);
+        cout << "Good\n";
     }
-    fin.close();
-    cout << "\nShapes loaded from file : \n";
-    for (auto s : shapes) {
-        s->Show();
+    catch (bad_cast&) {
+        cout << "Error\n";
     }
-    for (auto s : shapes) delete s;
-    return 0;
+}
+int main() {
+	SetConsoleOutputCP(1251);
+	SetConsoleCP(1251);
+
+    cout << toInt(5.7) << endl;
+
+    Circle c(3);
+    Shape* s = static_cast<Shape*>(&c);
+    Circle* c2 = static_cast<Circle*>(s);
+    cout << c2->getPerimeter() << endl;
+    char text[] = "ItStep";
+    void* ptr = text;
+    cout << voidToChar(ptr) << endl;
+    Vehicle* arr[] = { new Car(), new Bicycle(), new Car() };
+    for (auto v : arr) checkTypeVehicle(v);
+    Car car;
+    Bicycle b;
+    castVehicle(car);
+    castVehicle(b);
+    for (auto v : arr) delete v;
 }
