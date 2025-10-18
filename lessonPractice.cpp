@@ -1,63 +1,94 @@
 #include <iostream>
+#include <string>
+#include <fstream>
 #include <Windows.h>
 
 using namespace std;
 
-int toInt(double i) {
-    return static_cast<int>(i);
-}
-class Shape {
-public:
-    virtual double getPerimeter() const = 0;
-    virtual ~Shape() {}
-};
-class Circle : public Shape {
-    double radius;
-public:
-    Circle(double radius) : radius(radius) {}
-    double getPerimeter() const override { return 2 * 3.14 * radius; }
-};
-char* voidToChar(void* ptr) {
-    return static_cast<char*>(ptr);
-}
-class Vehicle {
-public:
-    virtual ~Vehicle() {}
-};
-class Car : public Vehicle {};
-class Bicycle : public Vehicle {};
-void checkTypeVehicle(Vehicle* vehicle) {
-    if (typeid(*vehicle) == typeid(Car)) cout << "Car\n";
-    else if (typeid(*vehicle) == typeid(Bicycle)) cout << "Bicycle\n";
-}
+class Matrix {
+private:
+    int size;
+    int rows, cols;
+    int** data;
 
-void castVehicle(Vehicle& vehicle) {
-    try {
-        Car& car = dynamic_cast<Car&>(vehicle);
-        cout << "Good\n";
+public:
+    Matrix() : rows(0), cols(0), data(nullptr) {}
+    Matrix(int rows, int cols) : rows(rows), cols(cols) {
+        allocate();
+        fillRandom();
     }
-    catch (bad_cast&) {
-        cout << "Error\n";
+    ~Matrix() {
+        for (int i = 0; i < rows; i++)
+            delete[] data[i];
+        delete[] data;
     }
-}
+    void allocate() {
+        data = new int* [rows];
+        for (int i = 0; i < rows; i++)
+            data[i] = new int[cols];
+    }
+    void fillRandom() {
+        srand(time(0));
+        for (int i = 0; i < rows; i++)
+            for (int j = 0; j < cols; j++)
+                data[i][j] = rand() % 100;
+    }
+    friend ostream& operator<<(ostream& out, const Matrix& other) {
+        out << "\ncols : " << other.cols << " rows : " << other.rows << endl;
+        for (int i = 0; i < other.rows; i++) {
+            for (int j = 0; j < other.cols; j++)
+                out << other.data[i][j] << " ";
+            out << endl;
+        }
+        return out;
+    }
+    friend istream& operator>>(istream& in, Matrix& other) {
+        if (other.rows == 0 && other.cols == 0) {
+            cout << "Enter number of rows and columns : ";
+            in >> other.rows >> other.cols;
+            other.allocate();
+        }
+        cout << "Enter elements of the matrix :\n";
+        for (int i = 0; i < other.rows; i++)
+            for (int j = 0; j < other.cols; j++)
+                in >> other.data[i][j];
+        return in;
+    }
+    void writeToFile(const string& filename) const {
+        ofstream fout(filename);
+        fout << rows << " " << cols << endl;
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++)
+                fout << data[i][j] << " ";
+            fout << endl;
+        }
+        fout.close();
+    }
+    void readFromFile(const string& filename) {
+        ifstream fin(filename);
+        if (!fin) return;
+        fin >> rows >> cols;
+        allocate();
+        for (int i = 0; i < rows; i++)
+            for (int j = 0; j < cols; j++)
+                fin >> data[i][j];
+        fin.close();
+    }
+};
 int main() {
-	SetConsoleOutputCP(1251);
-	SetConsoleCP(1251);
+    SetConsoleOutputCP(1251);
+    SetConsoleCP(1251);
+    int rows, cols;
+    cout << "Enter number of rows and cols : " << endl;
+    cin >> rows >> cols;
+    Matrix m(rows, cols);
+    cout << m;
+    cin >> m;
+    cout << "\nMatrix :\n" << m << endl;
+    m.writeToFile("matrix.txt");
+    Matrix m2;
+    m2.readFromFile("matrix.txt");
+    cout << "\nMatrix from file :\n" << m2;
 
-    cout << toInt(5.7) << endl;
-
-    Circle c(3);
-    Shape* s = static_cast<Shape*>(&c);
-    Circle* c2 = static_cast<Circle*>(s);
-    cout << c2->getPerimeter() << endl;
-    char text[] = "ItStep";
-    void* ptr = text;
-    cout << voidToChar(ptr) << endl;
-    Vehicle* arr[] = { new Car(), new Bicycle(), new Car() };
-    for (auto v : arr) checkTypeVehicle(v);
-    Car car;
-    Bicycle b;
-    castVehicle(car);
-    castVehicle(b);
-    for (auto v : arr) delete v;
+    return 0;
 }
