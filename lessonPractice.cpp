@@ -1,94 +1,59 @@
 #include <iostream>
+#include <vector>
 #include <string>
-#include <fstream>
 #include <Windows.h>
-
 using namespace std;
 
-class Matrix {
+/*struct Time {
 private:
-    int size;
-    int rows, cols;
-    int** data;
-
+    string name;
 public:
-    Matrix() : rows(0), cols(0), data(nullptr) {}
-    Matrix(int rows, int cols) : rows(rows), cols(cols) {
-        allocate();
-        fillRandom();
-    }
-    ~Matrix() {
-        for (int i = 0; i < rows; i++)
-            delete[] data[i];
-        delete[] data;
-    }
-    void allocate() {
-        data = new int* [rows];
-        for (int i = 0; i < rows; i++)
-            data[i] = new int[cols];
-    }
-    void fillRandom() {
-        srand(time(0));
-        for (int i = 0; i < rows; i++)
-            for (int j = 0; j < cols; j++)
-                data[i][j] = rand() % 100;
-    }
-    friend ostream& operator<<(ostream& out, const Matrix& other) {
-        out << "\ncols : " << other.cols << " rows : " << other.rows << endl;
-        for (int i = 0; i < other.rows; i++) {
-            for (int j = 0; j < other.cols; j++)
-                out << other.data[i][j] << " ";
-            out << endl;
-        }
-        return out;
-    }
-    friend istream& operator>>(istream& in, Matrix& other) {
-        if (other.rows == 0 && other.cols == 0) {
-            cout << "Enter number of rows and columns : ";
-            in >> other.rows >> other.cols;
-            other.allocate();
-        }
-        cout << "Enter elements of the matrix :\n";
-        for (int i = 0; i < other.rows; i++)
-            for (int j = 0; j < other.cols; j++)
-                in >> other.data[i][j];
-        return in;
-    }
-    void writeToFile(const string& filename) const {
-        ofstream fout(filename);
-        fout << rows << " " << cols << endl;
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++)
-                fout << data[i][j] << " ";
-            fout << endl;
-        }
-        fout.close();
-    }
-    void readFromFile(const string& filename) {
-        ifstream fin(filename);
-        if (!fin) return;
-        fin >> rows >> cols;
-        allocate();
-        for (int i = 0; i < rows; i++)
-            for (int j = 0; j < cols; j++)
-                fin >> data[i][j];
-        fin.close();
-    }
+    Time(string name) : name(name){}
+    
+};*/
+
+struct Train {
+    string number;
+    string time;
+    string destination;
 };
+
 int main() {
+
     SetConsoleOutputCP(1251);
     SetConsoleCP(1251);
-    int rows, cols;
-    cout << "Enter number of rows and cols : " << endl;
-    cin >> rows >> cols;
-    Matrix m(rows, cols);
-    cout << m;
-    cin >> m;
-    cout << "\nMatrix :\n" << m << endl;
-    m.writeToFile("matrix.txt");
-    Matrix m2;
-    m2.readFromFile("matrix.txt");
-    cout << "\nMatrix from file :\n" << m2;
-
+    vector<Train> trains;
+    int choice;
+    do {
+        cout << "\n1 - Add train\n2 - Show all trains\n3 - Find Train\n0 - Exit\nYour choice : ";
+        cin >> choice;
+        if (choice == 1) {
+            Train t;
+            cout << "Number of train : ";
+            cin >> t.number;
+            cout << "Departure time : ";
+            cin >> t.time;
+            cout << "Station of destination : ";
+            cin.ignore();
+            getline(cin, t.destination);
+            trains.push_back(t);
+        }
+        else if (choice == 2) {
+            for (auto& t : trains)
+                cout << "Train " << t.number << " | " << t.time << " | " << t.destination << endl;
+        }
+        else if (choice == 3) {
+            string num;
+            cout << "Enter the number of train : ";
+            cin >> num;
+            bool found = false;
+            for (auto& t : trains)
+                if (t.number == num) {
+                    cout << "Train " << t.number << " | " << t.time << " | " << t.destination << endl;
+                    found = true;
+                }
+            if (!found) cout << "Train didnt find\n";
+        }
+    } while (choice != 0);
     return 0;
 }
